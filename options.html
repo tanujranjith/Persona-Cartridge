@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Persona Cartridges · Settings</title>
+  <link rel="stylesheet" href="popup.css" />
+  <style>
+    body { width: auto; min-height: 100vh; display: flex; justify-content: center; padding: 48px 20px 80px; }
+    .wrap { width: 100%; max-width: 580px; display: flex; flex-direction: column; gap: 28px; }
+    .head { display: flex; align-items: center; gap: 12px; }
+    .head .mark { width: 28px; height: 28px; border-radius: 8px; }
+    .head .mark i { left: 6px; right: 6px; top: 6px; height: 9px; }
+    .head h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.015em; }
+    .head p { margin: 0; color: var(--muted); font-size: 12.5px; }
+    .group-h { font-size: 12px; font-weight: 500; color: var(--muted); margin: 0 0 8px 2px; }
+    .panel { border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+    .field-row { display: flex; gap: 16px; align-items: center; padding: 14px 16px; border-top: 1px solid var(--line); }
+    .field-row:first-child { border-top: 0; }
+    .field-row.col { flex-direction: column; align-items: stretch; gap: 8px; }
+    .lbl { flex: 1; min-width: 0; }
+    .lbl b { display: block; font-weight: 550; }
+    .lbl small { display: block; color: var(--muted); font-size: 12px; margin-top: 1px; }
+    select, .field { width: 100%; height: 34px; padding: 0 10px; border-radius: 9px; background: var(--bg); color: var(--text); border: 1px solid var(--line); outline: none; font: inherit; }
+    select:focus, .field:focus { border-color: var(--line-2); }
+    .narrow { width: 200px; flex: none; }
+    .keywrap { position: relative; }
+    .keywrap .field { padding-right: 56px; }
+    .keywrap button { position: absolute; right: 6px; top: 5px; height: 24px; padding: 0 8px; border-radius: 6px; color: var(--dim); font-size: 12px; }
+    .keywrap button:hover { background: var(--s2); }
+    .seg { display: inline-flex; padding: 3px; border-radius: 9px; background: var(--bg); border: 1px solid var(--line); flex: none; }
+    .seg button { height: 28px; padding: 0 12px; border-radius: 6px; color: var(--dim); font-weight: 500; }
+    .seg button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(20,20,10,.08), inset 0 0 0 1px var(--line); }
+    .switch { position: relative; width: 34px; height: 20px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch span { position: absolute; inset: 0; border-radius: 20px; background: var(--s3); border: 1px solid var(--line-2); transition: .15s; cursor: pointer; }
+    .switch span::after { content: ""; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--dim); transition: .15s var(--ease); }
+    .switch input:checked + span { background: var(--accent); border-color: transparent; }
+    .switch input:checked + span::after { transform: translateX(14px); background: #fff; }
+    .actions-row { display: flex; gap: 8px; align-items: center; }
+    .actions-row .msg { font-size: 12.5px; color: var(--muted); }
+    .actions-row .msg.ok { color: var(--ok); } .actions-row .msg.err { color: var(--err); }
+    .note { color: var(--muted); font-size: 12px; padding: 0 2px; }
+    .btn.accent { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+    .btn.accent:hover { filter: brightness(1.08); background: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="mark" aria-hidden="true"><i></i></div>
+      <div><h1>Settings</h1><p>Persona Cartridges</p></div>
+    </div>
+
+    <section>
+      <div class="group-h">Loading</div>
+      <div class="panel">
+        <div class="field-row">
+          <div class="lbl"><b>Load as</b><small>Attach a .md file to the chat, or paste the context as text.</small></div>
+          <div class="seg" id="loadMode"><button data-v="file">.md file</button><button data-v="text">Text</button></div>
+        </div>
+        <div class="field-row">
+          <div class="lbl"><b>Include last messages word for word</b><small>Text mode only. File mode always carries the full chat.</small></div>
+          <label class="switch"><input id="includeTranscript" type="checkbox" /><span></span></label>
+        </div>
+        <div class="field-row">
+          <div class="lbl"><b>How many last messages</b></div>
+          <input id="transcriptTurns" class="field" style="width:80px" type="number" min="1" max="40" />
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="group-h">Distilling AI</div>
+      <div class="panel">
+        <div class="field-row">
+          <div class="lbl"><b>Provider</b><small>Your key turns a chat into a persona. Optional.</small></div>
+          <select id="provider" class="narrow"></select>
+        </div>
+        <div class="field-row col">
+          <div class="lbl"><b>API key</b><small>Stored only in this browser and sent only to the provider above.</small></div>
+          <div class="keywrap">
+            <input id="apiKey" class="field" type="password" placeholder="Paste your key" autocomplete="off" />
+            <button id="toggleKey" type="button">Show</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="lbl"><b>Model</b><small>Leave blank for the default.</small></div>
+          <input id="model" class="field narrow" />
+        </div>
+        <div class="field-row col" id="baseWrap">
+          <div class="lbl"><b>Base URL</b><small>Any OpenAI-compatible endpoint: OpenRouter, Groq, Together, a local server.</small></div>
+          <input id="baseUrl" class="field" placeholder="https://openrouter.ai/api/v1" />
+        </div>
+        <div class="field-row">
+          <div class="lbl"><b>Max transcript sent for distilling</b><small>Characters. Long chats keep the start and the end.</small></div>
+          <input id="maxChars" class="field" style="width:110px" type="number" min="5000" step="5000" />
+        </div>
+      </div>
+    </section>
+
+    <div class="actions-row">
+      <button class="btn accent" id="saveBtn">Save settings</button>
+      <button class="btn" id="testBtn">Test key</button>
+      <span class="msg" id="status"></span>
+    </div>
+    <div class="note">Everything stays on this device. Locked cartridges are encrypted with their PIN; a forgotten PIN can’t be recovered.</div>
+  </div>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

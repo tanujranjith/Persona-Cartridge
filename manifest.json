@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Persona Cartridges",
+  "version": "1.2.0",
+  "description": "Save any AI chat, even a temporary one, as a portable persona cartridge and load it into ChatGPT, Claude, Gemini, DeepSeek or anywhere.",
+  "permissions": ["activeTab", "scripting", "storage", "unlimitedStorage", "clipboardWrite"],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.deepseek.com/*"
+  ],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": {
+    "default_title": "Persona Cartridges",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "options_page": "options.html",
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Open Persona Cartridges"
+    }
+  }
+}

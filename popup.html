@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Persona Cartridges</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- LIST VIEW -->
+    <section class="view" id="listView">
+      <header class="bar">
+        <div class="mark" aria-hidden="true"><i></i></div>
+        <div class="bar-title">Persona Cartridges</div>
+        <div class="bar-actions">
+          <button class="ib" id="searchBtn" title="Search (/)" aria-label="Search">
+            <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+          </button>
+          <button class="ib" id="importBtn" title="Import (.json or .md)" aria-label="Import">
+            <svg viewBox="0 0 20 20"><path d="M10 3v9m0 0-3.5-3.5M10 12l3.5-3.5M4 15.5h12" /></svg>
+          </button>
+          <button class="ib" id="openSettings" title="Settings" aria-label="Settings">
+            <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2M4.7 4.7l1.4 1.4M13.9 13.9l1.4 1.4M4.7 15.3l1.4-1.4M13.9 6.1l1.4-1.4"/></svg>
+            <span class="ping hidden" id="keyDot"></span>
+          </button>
+          <input type="file" id="importFile" accept=".json,.md,application/json,text/markdown" hidden multiple />
+        </div>
+      </header>
+
+      <div class="search-wrap hidden" id="searchWrap">
+        <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="5.5"/><path d="m13.2 13.2 3.3 3.3"/></svg>
+        <input id="search" placeholder="Search cartridges" autocomplete="off" spellcheck="false" />
+        <kbd>esc</kbd>
+      </div>
+
+      <div class="slot" id="here">
+        <div class="slot-line" id="slotLine"></div>
+        <div class="slot-row">
+          <div class="plogo" id="hereAvatar"></div>
+          <div class="here-text">
+            <div class="here-title" id="hereTitle">Checking this tab…</div>
+            <div class="here-sub" id="hereSub">&nbsp;</div>
+          </div>
+        </div>
+        <button class="save" id="saveBtn" title="Save this chat (S)"><span class="save-label">Save this chat</span></button>
+        <div class="status hidden" id="status"></div>
+      </div>
+      <div class="progress hidden" id="progress"></div>
+
+      <nav class="filters" id="filters">
+        <button data-f="all" class="on">All</button><i>·</i><button data-f="locked">Locked</button><i>·</i><button data-f="recent">Recent</button>
+      </nav>
+
+      <div class="grid" id="list" role="listbox"></div>
+
+      <div class="empty hidden" id="empty">
+        <div class="empty-cart" id="emptyCart"></div>
+        <div class="empty-title">No cartridges yet</div>
+        <div class="empty-sub">Open any AI chat and hit Save this chat. It reads the whole thread, temporary chats too.</div>
+      </div>
+    </section>
+
+    <!-- DETAIL VIEW -->
+    <section class="view hidden" id="detailView">
+      <header class="bar">
+        <button class="ib" id="backBtn" title="Back (Esc)" aria-label="Back">
+          <svg viewBox="0 0 20 20"><path d="M12 4.5 6.5 10l5.5 5.5"/></svg>
+        </button>
+        <input class="d-name" id="dName" spellcheck="false" maxlength="60" />
+        <div class="bar-actions">
+          <button class="ib" id="moreBtn" title="More" aria-label="More">
+            <svg viewBox="0 0 20 20"><circle cx="5" cy="10" r=".9"/><circle cx="10" cy="10" r=".9"/><circle cx="15" cy="10" r=".9"/></svg>
+          </button>
+        </div>
+      </header>
+      <div class="menu hidden" id="menu"></div>
+      <div class="d-meta" id="dMeta"></div>
+      <div class="d-body" id="dBody"></div>
+      <div class="d-actions">
+        <button class="btn primary" id="dLoad">Load into chat</button>
+        <button class="btn" id="dCopy" title="Copy as text">Copy</button>
+        <button class="btn" id="dDownload" title="Download .md">.md</button>
+      </div>
+    </section>
+
+    <!-- PIN SHEET -->
+    <div class="sheet hidden" id="pinSheet">
+      <div class="sheet-card">
+        <div class="lock-ico"><svg viewBox="0 0 20 20"><rect x="4.5" y="9" width="11" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9"/></svg></div>
+        <div class="sheet-title" id="pinTitle">Enter PIN</div>
+        <div class="sheet-sub" id="pinSub"></div>
+        <div class="dots" id="pinDots"></div>
+        <div class="pad" id="pinPad"></div>
+        <button class="btn ghost wide" id="pinCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
