@@ -143,3 +143,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   return false;
 });
+
+// Clicking the toolbar icon opens the side panel (next to the chat) instead of a popup.
+function panelOnClick() {
+  if (chrome.sidePanel?.setPanelBehavior) chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {});
+}
+chrome.runtime.onInstalled.addListener(panelOnClick);
+chrome.runtime.onStartup.addListener(panelOnClick);
+panelOnClick();

@@ -45,3 +45,11 @@ Cartridges and your key live only in `chrome.storage.local` on this device. The 
 - **Role detection without labels:** if a site has no message attributes, user vs assistant is worked out from bubble position.
 - **PIN locks:** open a cartridge, ••• → Lock with PIN. It's encrypted (AES-256, key derived from your PIN), so loading, copying, previewing or deleting needs the PIN. 5 wrong tries pauses it for 30s. A forgotten PIN can't be recovered.
 - **v1.2 design:** light cartridge shelf. Each persona is a cartridge with a pastel label (color by provider), All · Locked · Recent filters, coral Save this chat slot. Keys: `S` save, `/` search, arrows move around the grid, `Enter` load, `Space` open, `Esc` / `Backspace` back.
+
+
+## v1.3.0
+- Opens as a Chrome side panel next to the chat (click the toolbar icon or Alt+Shift+S). The panel follows the tab you switch to.
+- Readers for Hark, Copilot, Perplexity, Grok, Mistral Le Chat, Poe, Kimi, Qwen, HuggingChat, plus Meta AI, Pi and Character.AI through the layout reader. ChatGPT, Claude, Gemini and DeepSeek are unchanged.
+- Expands "Show more" and collapsed sections before reading.
+- Better stitching: no orphan blocks at the top, no duplicated messages, and drops timestamp lines.
+- On sites without built-in access, Save asks Chrome once for permission to read that site.

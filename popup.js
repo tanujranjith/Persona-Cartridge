@@ -4,6 +4,9 @@ import {
 } from './shared.js';
 import { extractChat, injectPrimer, attachFile } from './page-scripts.js';
 
+const IS_PANEL = new URLSearchParams(location.search).has('panel');
+if (IS_PANEL) document.documentElement.classList.add('panel');
+
 const $ = (id) => document.getElementById(id);
 const COLORS = { ChatGPT: '#10a37f', Claude: '#d97757', Gemini: '#4f7cff', DeepSeek: '#4d6bfe' };
 // Pastel cartridge labels: [fill, stroke]
@@ -83,15 +86,29 @@ function status(msg, cls = '') {
 function canScript(t) {
   return t && t.url && /^https?:/.test(t.url) && !/^https:\/\/chromewebstore\.google\.com/.test(t.url);
 }
+// The side panel can't lean on activeTab, so make sure we may script this site.
+// Known chat sites are granted at install; anything else asks once (needs the click).
+function originOf(t) { try { return new URL(t.url).origin + '/*'; } catch (e) { return null; } }
+async function hasAccess(t) {
+  const o = originOf(t);
+  if (!o) return false;
+  try { return await chrome.permissions.contains({ origins: [o] }); } catch (e) { return false; }
+}
+async function ensureAccess(t) {
+  const o = originOf(t);
+  if (!o) return false;
+  try { if (await chrome.permissions.contains({ origins: [o] })) return true; } catch (e) {}
+  try { return await chrome.permissions.request({ origins: [o] }); } catch (e) { return false; }
+}
 async function run(func, args = []) {
   const [res] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func, args });
   return res?.result;
 }
 // Run in every frame and keep the frame that found the most conversation.
-async function runBest(func, args = []) {
+async function runBest(func, args = [], t = tab) {
   let results = [];
-  try { results = await chrome.scripting.executeScript({ target: { tabId: tab.id, allFrames: true }, func, args }); }
-  catch (e) { results = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func, args }); }
+  try { results = await chrome.scripting.executeScript({ target: { tabId: t.id, allFrames: true }, func, args }); }
+  catch (e) { results = await chrome.scripting.executeScript({ target: { tabId: t.id }, func, args }); }
   const rank = { 'site-reader': 4, 'role-attributes': 3, layout: 2, selection: 1, 'page-text': 0 };
   const score = (r) => {
     if (!r) return -1;
@@ -196,6 +213,13 @@ async function detect() {
     $('saveBtn').disabled = true;
     return;
   }
+  $('saveBtn').disabled = false;
+  if (IS_PANEL && !(await hasAccess(tab))) {
+    av.innerHTML = ICON.globe;
+    title.textContent = tab.title || new URL(tab.url).hostname;
+    sub.textContent = 'Hit Save to let Persona Cartridges read this site';
+    return;
+  }
   try {
     const d = await runBest(extractChat, [{ detectOnly: true }]);
     av.innerHTML = provLogo(d.provider);
@@ -213,12 +237,14 @@ async function detect() {
 async function save() {
   const btn = $('saveBtn');
   if (btn.disabled) return;
+  const curTab = tab;
+  if (!(await ensureAccess(curTab))) { status('Chrome didn’t allow access to this site, so nothing was saved.', 'err'); return; }
   btn.disabled = true;
   btn.querySelector('.save-label').textContent = 'Reading the whole chat…';
   $('slotLine').classList.add('busy');
   status('Scrolling through the whole chat. Keep this open.');
   try {
-    const chat = await runBest(extractChat, [{}]);
+    const chat = await runBest(extractChat, [{}], curTab);
     if (!chat || !chat.messages?.length) { status('Found no chat text on this page. Nothing saved.', 'err'); addDebug(chat?.diag); return; }
     const chars = chat.messages.reduce((n, m) => n + m.text.length, 0);
     const c = {
@@ -268,6 +294,10 @@ async function load(c) {
   if (!canScript(tab)) {
     await navigator.clipboard.writeText(buildPrimer(full, settings)).catch(() => {});
     return toast('Open a chat tab first. Copied as text', true);
+  }
+  if (!(await ensureAccess(tab))) {
+    await navigator.clipboard.writeText(buildPrimer(full, settings)).catch(() => {});
+    return toast('No access to this site. Copied as text', true);
   }
   if (settings.loadMode !== 'text') {
     const name = fileNameFor(full);
@@ -579,6 +609,20 @@ async function init() {
   settings = await getSettings();
   $('keyDot').classList.toggle('hidden', !!settings.apiKey);
   [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (IS_PANEL) {
+    // The panel stays open as you switch tabs, so keep the "current chat" row in sync.
+    let t0 = null;
+    const follow = async () => {
+      clearTimeout(t0);
+      t0 = setTimeout(async () => {
+        const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (t) { tab = t; detect(); }
+      }, 250);
+    };
+    chrome.tabs.onActivated.addListener(follow);
+    chrome.tabs.onUpdated.addListener((id, info) => { if (tab && id === tab.id && (info.status === 'complete' || info.title)) follow(); });
+    chrome.windows?.onFocusChanged?.addListener(follow);
+  }
   $('saveBtn').addEventListener('click', save);
   $('openSettings').addEventListener('click', () => chrome.runtime.openOptionsPage());
   $('importBtn').addEventListener('click', () => $('importFile').click());

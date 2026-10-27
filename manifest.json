@@ -1,28 +1,77 @@
 {
   "manifest_version": 3,
   "name": "Persona Cartridges",
-  "version": "1.2.1",
-  "description": "Save any AI chat, even a temporary one, as a portable persona cartridge and load it into ChatGPT, Claude, Gemini, DeepSeek or anywhere.",
-  "permissions": ["activeTab", "scripting", "storage", "unlimitedStorage", "clipboardWrite"],
+  "version": "1.3.0",
+  "description": "Save any AI chat, even a temporary one, as a portable persona cartridge and load it into ChatGPT, Claude, Gemini, Copilot, Perplexity, Grok, DeepSeek or anywhere. Opens as a side panel.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "unlimitedStorage",
+    "clipboardWrite",
+    "sidePanel",
+    "tabs"
+  ],
   "host_permissions": [
     "https://api.openai.com/*",
     "https://api.anthropic.com/*",
     "https://generativelanguage.googleapis.com/*",
-    "https://api.deepseek.com/*"
+    "https://api.deepseek.com/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://claude.ai/*",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://hark.com/*",
+    "https://*.hark.com/*",
+    "https://copilot.microsoft.com/*",
+    "https://www.perplexity.ai/*",
+    "https://perplexity.ai/*",
+    "https://grok.com/*",
+    "https://chat.mistral.ai/*",
+    "https://poe.com/*",
+    "https://www.kimi.com/*",
+    "https://kimi.ai/*",
+    "https://chat.qwen.ai/*",
+    "https://huggingface.co/chat/*",
+    "https://www.meta.ai/*",
+    "https://pi.ai/*",
+    "https://character.ai/*"
   ],
-  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
-  "background": { "service_worker": "background.js", "type": "module" },
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_title": "Persona Cartridges",
-    "default_popup": "popup.html",
-    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
-  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "options_page": "options.html",
   "commands": {
     "_execute_action": {
-      "suggested_key": { "default": "Alt+Shift+S" },
-      "description": "Open Persona Cartridges"
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Open the Persona Cartridges side panel"
     }
+  },
+  "side_panel": {
+    "default_path": "popup.html?panel=1"
   }
 }

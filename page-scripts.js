@@ -45,6 +45,110 @@ export async function extractChat(opts) {
       ],
       busy: () => false,
       scroller: () => document.querySelector('.ds-scroll-area') || document.querySelector('main')
+    },
+    {
+      name: 'Hark',
+      match: /(^|\.)hark\.com$/,
+      strategies: [
+        { sel: '[data-message-role], [data-role="user"], [data-role="assistant"], [data-sender], [data-author]', role: (e) => e.getAttribute('data-message-role') || e.getAttribute('data-role') || e.getAttribute('data-sender') || e.getAttribute('data-author'), content: null }
+      ],
+      busy: () => !!document.querySelector('button[aria-label*="Stop" i]'),
+      scroller: () => null
+    },
+    {
+      name: 'Copilot',
+      match: /(^|\.)copilot\.microsoft\.com$|(^|\.)m365\.cloud\.microsoft$/,
+      strategies: [
+        { sel: '[data-content="user-message"], [data-content="ai-message"]', role: (e) => (e.getAttribute('data-content') === 'user-message' ? 'user' : 'assistant'), content: null },
+        { sel: '[class*="user-message"], [class*="ai-message"]', role: (e) => (/user-message/.test(e.className) ? 'user' : 'assistant'), content: null }
+      ],
+      busy: () => !!document.querySelector('button[aria-label*="Stop" i]'),
+      scroller: () => null
+    },
+    {
+      name: 'Perplexity',
+      match: /(^|\.)perplexity\.ai$/,
+      strategies: [
+        { sel: '[class*="group/query"], [id^="markdown-content"]', role: (e) => (e.matches('[id^="markdown-content"]') ? 'assistant' : 'user'), content: null },
+        { sel: 'h1[class*="query"], .prose', role: (e) => (e.matches('.prose') ? 'assistant' : 'user'), content: null }
+      ],
+      busy: () => !!document.querySelector('button[aria-label*="Stop" i]'),
+      scroller: () => null
+    },
+    {
+      name: 'Grok',
+      match: /(^|\.)grok\.com$/,
+      strategies: [
+        { sel: '.message-bubble', role: (e) => (e.closest('.items-end') ? 'user' : 'assistant'), content: null }
+      ],
+      busy: () => !!document.querySelector('button[aria-label*="Stop" i]'),
+      scroller: () => null
+    },
+    {
+      name: 'Mistral',
+      match: /(^|\.)chat\.mistral\.ai$/,
+      strategies: [
+        { sel: '[data-message-author-role]', role: (e) => e.getAttribute('data-message-author-role'), content: null }
+      ],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Poe',
+      match: /(^|\.)poe\.com$/,
+      strategies: [
+        { sel: '[class*="Message_humanMessageBubble"], [class*="Message_botMessageBubble"]', role: (e) => (/humanMessage/.test(e.className) ? 'user' : 'assistant'), content: '[class*="Markdown_markdownContainer"]' }
+      ],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Kimi',
+      match: /(^|\.)kimi\.(com|ai)$|(^|\.)moonshot\.cn$/,
+      strategies: [
+        { sel: '.chat-content-item-user, .chat-content-item-assistant', role: (e) => (e.classList.contains('chat-content-item-user') ? 'user' : 'assistant'), content: null }
+      ],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Qwen',
+      match: /(^|\.)chat\.qwen\.ai$|(^|\.)qwen\.ai$/,
+      strategies: [
+        { sel: '.user-message, .response-message-content, [class*="chat-user-message"], [class*="chat-response-message"]', role: (e) => (/user/.test(e.className) ? 'user' : 'assistant'), content: null }
+      ],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'HuggingChat',
+      match: /(^|\.)huggingface\.co$/,
+      strategies: [
+        { sel: '[data-message-role], [data-message-type]', role: (e) => e.getAttribute('data-message-role') || e.getAttribute('data-message-type'), content: null }
+      ],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Meta AI',
+      match: /(^|\.)meta\.ai$/,
+      strategies: [],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Pi',
+      match: /(^|\.)pi\.ai$/,
+      strategies: [],
+      busy: () => false,
+      scroller: () => null
+    },
+    {
+      name: 'Character.AI',
+      match: /(^|\.)character\.ai$/,
+      strategies: [],
+      busy: () => false,
+      scroller: () => null
     }
   ];
 
@@ -89,7 +193,7 @@ export async function extractChat(opts) {
     return { url: location.href.split('?')[0], frame: window === window.top ? 'top' : 'child', counts, shadowHosts, testids: Object.entries(testids).sort((a, b) => b[1] - a[1]).slice(0, 15), bodyText: (document.body?.innerText || '').length };
   }
 
-  const NOISE = /^(copy|copy code|retry|edit|share|regenerate|you said:?|chatgpt said:?|show thinking|thought for .*|thinking\.{0,3}|searching.*|analyzing.*|like|dislike|read aloud|good response|bad response|more actions|chatgpt can make mistakes.*|(today|yesterday)( at)? \d{1,2}:\d{2}( ?[ap]m)?|edit message|share|open in canvas)$/i;
+  const NOISE = /^(copy|copy code|retry|edit|share|regenerate|you said:?|chatgpt said:?|show thinking|thought for .*|thinking\.{0,3}|searching.*|analyzing.*|like|dislike|read aloud|good response|bad response|more actions|chatgpt can make mistakes.*|(today|yesterday)( at)? \d{1,2}:\d{2}( ?[ap]m)?|edit message|share|open in canvas|\d{1,2}:\d{2}\s?[ap]\.?m\.?|[a-z]{3,9}\.? ?\d{1,2},? ?\d{1,2}:\d{2}\s?[ap]\.?m\.?|(monday|tuesday|wednesday|thursday|friday|saturday|sunday), [a-z]+ \d{1,2}(, \d{4})?|(today|yesterday)|show more|show less|see more|read more)$/i;
 
   // Convert a message node into clean text without touching the page.
   // Keeps code blocks as fenced code, lists as bullets, skips buttons and hidden thinking.
@@ -185,12 +289,12 @@ export async function extractChat(opts) {
   }
 
   function genericExtract() {
-    const roleEls = topLevel(deepAll('[data-message-author-role], [data-turn], [data-role="user"], [data-role="assistant"], [data-author], [data-sender]'));
+    const roleEls = topLevel(deepAll('[data-message-author-role], [data-message-role], [data-turn], [data-role="user"], [data-role="assistant"], [data-author], [data-sender]'));
     if (roleEls.length >= 2) {
       return {
         method: 'role-attributes',
         messages: roleEls
-          .map((e) => ({ role: normRole(e.getAttribute('data-message-author-role') || e.getAttribute('data-turn') || e.getAttribute('data-role') || e.getAttribute('data-author') || e.getAttribute('data-sender')), text: nodeToText(e) }))
+          .map((e) => ({ role: normRole(e.getAttribute('data-message-author-role') || e.getAttribute('data-message-role') || e.getAttribute('data-turn') || e.getAttribute('data-role') || e.getAttribute('data-author') || e.getAttribute('data-sender')), text: nodeToText(e) }))
           .filter((m) => m.text)
       };
     }
@@ -225,19 +329,15 @@ export async function extractChat(opts) {
       if (!meaningful(k) || k.querySelector('textarea, [contenteditable="true"]')) continue;
       const text = nodeToText(k);
       if (!text) continue;
-      // Measure the widest visible text block in this turn.
+      // Where the text actually sits: a right-hand bubble is the user. Use the text's own extent,
+      // not the wrapper (which is usually full width).
       let r = null;
-      for (const b of [k, ...k.querySelectorAll('div, p, pre')]) {
-        const t = (b.innerText ?? b.textContent ?? '').trim();
-        if (!t) continue;
-        const rr = b.getBoundingClientRect();
-        if (rr.width && (!r || rr.width > r.width)) r = rr;
-        if (r && b !== k) break;
-      }
+      try { const rg = document.createRange(); rg.selectNodeContents(k); r = rg.getBoundingClientRect(); } catch (e) {}
+      if (!r || !r.width) r = k.getBoundingClientRect();
       let role = 'assistant';
-      if (r && box.width) {
-        const center = (r.left + r.right) / 2 - box.left;
-        if (center > box.width * 0.58 && r.width < box.width * 0.8) role = 'user';
+      if (r && r.width && box.width) {
+        const left = r.left - box.left, right = r.right - box.left;
+        if (left > box.width * 0.25 && right > box.width * 0.55 && r.width < box.width * 0.8) role = 'user';
       }
       out.push({ role, text });
     }
@@ -265,10 +365,10 @@ export async function extractChat(opts) {
         if (msgs.length) return { method: 'site-reader', messages: msgs };
       }
     }
-    const roleEls = topLevel(deepAll('[data-message-author-role], [data-turn], [data-role="user"], [data-role="assistant"], [data-author], [data-sender]'));
+    const roleEls = topLevel(deepAll('[data-message-author-role], [data-message-role], [data-turn], [data-role="user"], [data-role="assistant"], [data-author], [data-sender]'));
     if (roleEls.length >= 2) {
       const msgs = roleEls
-        .map((e) => ({ role: normRole(e.getAttribute('data-message-author-role') || e.getAttribute('data-turn') || e.getAttribute('data-role') || e.getAttribute('data-author') || e.getAttribute('data-sender')), text: nodeToText(e), el: e }))
+        .map((e) => ({ role: normRole(e.getAttribute('data-message-author-role') || e.getAttribute('data-message-role') || e.getAttribute('data-turn') || e.getAttribute('data-role') || e.getAttribute('data-author') || e.getAttribute('data-sender')), text: nodeToText(e), el: e }))
         .filter((m) => m.text)
         .map((m) => ({ role: m.role, text: m.text, key: keyFor(m.el, m) }));
       if (msgs.length) return { method: 'role-attributes', messages: msgs };
@@ -282,21 +382,47 @@ export async function extractChat(opts) {
   // Ordered merge of snapshots taken while scrolling down. Chats unmount off-screen
   // messages, so no single snapshot has everything.
   function mergeInto(acc, index, snap) {
-    let pos = -1;
+    const flat = (t) => t.replace(/\s+/g, ' ').trim();
+    // Same message seen again with slightly different text (a timestamp, a half-rendered card)?
+    const near = (m) => {
+      const f = flat(m.text);
+      if (f.length < 24) return null;
+      for (const it of acc) {
+        if (it.role !== m.role && it.role !== 'transcript' && m.role !== 'transcript') continue;
+        const g = flat(it.text);
+        if (g.includes(f) || (f.includes(g) && g.length >= 24)) return it;
+      }
+      return null;
+    };
+    let pos = -1, matchedAny = false;
+    const pending = [];
+    const place = (item) => { acc.splice(pos + 1, 0, item); pos++; };
     const seen = {};
     for (const m of snap) {
       seen[m.key] = (seen[m.key] || 0) + 1;
       const k = m.key + '#' + seen[m.key];
-      if (k in index) {
-        pos = acc.indexOf(index[k]);
-        if (m.text.length > index[k].text.length) index[k].text = m.text;
-      } else {
-        const item = { role: m.role, text: m.text };
-        index[k] = item;
-        acc.splice(pos + 1, 0, item);
-        pos++;
+      let hit = index[k] || near(m);
+      if (hit) {
+        index[k] = hit;
+        pos = acc.indexOf(hit);
+        if (m.text.length > hit.text.length) hit.text = m.text;
+        if (!matchedAny) {
+          // Items before the first match belong just before it, not at the top of the chat.
+          matchedAny = true;
+          let at = pos;
+          for (const it of pending) { acc.splice(at, 0, it); at++; }
+          pos = acc.indexOf(hit);
+          pending.length = 0;
+        }
+        continue;
       }
+      const item = { role: m.role, text: m.text };
+      index[k] = item;
+      if (!matchedAny && acc.length) pending.push(item);
+      else place(item);
     }
+    // Nothing in this snapshot matched what we had: it continues after the end.
+    for (const it of pending) acc.push(it);
   }
 
   // Page text has no stable pieces, so stitch successive captures by their overlapping lines.
@@ -305,27 +431,54 @@ export async function extractChat(opts) {
     if (!b || a.includes(b)) return a;
     if (b.includes(a)) return b;
     const la = a.split('\n'), lb = b.split('\n');
-    const norm = (x) => x.trim();
-    const A = la.map(norm), B = lb.map(norm);
-    const first = B.findIndex((x) => x);
-    if (first < 0) return a;
-    // Largest overlap: a suffix of A that equals a prefix of B (blank lines ignored for the anchor).
-    for (let i = 0; i < A.length; i++) {
-      if (A[i] !== B[first]) continue;
-      let ia = i, ib = first, ok = true;
-      while (ia < A.length && ib < B.length) {
-        if (!A[ia]) { ia++; continue; }
-        if (!B[ib]) { ib++; continue; }
-        if (A[ia] !== B[ib]) { ok = false; break; }
-        ia++; ib++;
-      }
-      if (ok && ia >= A.length) {
-        const rest = lb.slice(ib).join('\n');
-        return rest.trim() ? a.replace(/\s+$/, '') + '\n' + rest : a;
+    const A = [], B = [];
+    la.forEach((x, i) => { const t = x.trim(); if (t) A.push({ t, i }); });
+    lb.forEach((x, i) => { const t = x.trim(); if (t) B.push({ t, i }); });
+    if (!B.length) return a;
+    // Try anchoring each of B's first few lines on every spot in A; keep the longest run.
+    let best = null;
+    for (let bs = 0; bs < Math.min(6, B.length); bs++) {
+      for (let i = 0; i < A.length; i++) {
+        if (A[i].t !== B[bs].t) continue;
+        let L = 0;
+        while (i + L < A.length && bs + L < B.length && A[i + L].t === B[bs + L].t) L++;
+        const reachesEnd = i + L >= A.length;
+        const score = L + (reachesEnd ? 3 : 0);
+        if (L >= 2 || reachesEnd) if (!best || score > best.score || (score === best.score && i > best.i)) best = { i, bs, L, score, reachesEnd };
       }
     }
-    // No overlap found (scrolled past a gap): keep both, in order.
-    return a.replace(/\s+$/, '') + '\n\n' + b;
+    if (!best) return a.replace(/\s+$/, '') + '\n\n' + b;            // a real gap: keep both, in order
+    const bEnd = best.bs + best.L;
+    if (bEnd >= B.length) return a;                                    // b adds nothing new
+    const aKeep = la.slice(0, A[best.i + best.L - 1].i + 1).join('\n');  // a up to the overlap
+    const tailA = A.slice(best.i + best.L).map((x) => x.t);
+    let rest = lb.slice(B[bEnd].i);
+    // a ran on past the overlap (a different render of the same lines): b's version wins,
+    // but keep any of a's lines b never shows.
+    if (!best.reachesEnd && tailA.length) {
+      const bSet = new Set(B.map((x) => x.t));
+      const extra = tailA.filter((t) => !bSet.has(t));
+      if (extra.length > tailA.length / 2) return a.replace(/\s+$/, '') + '\n' + rest.join('\n');
+    }
+    return aKeep.replace(/\s+$/, '') + '\n' + rest.join('\n');
+  }
+
+  // Open "Show more" style toggles inside the chat so collapsed text is in the page.
+  const opened = new WeakSet();
+  function expandCollapsed(sc) {
+    const root = sc && sc !== document.scrollingElement ? sc : (document.querySelector('main') || document.body);
+    let n = 0;
+    for (const b of root.querySelectorAll('button, [role="button"], summary')) {
+      if (opened.has(b) || b.closest('nav, aside, form, a[href]')) continue;
+      const t = (b.innerText || b.textContent || b.getAttribute('aria-label') || '').trim();
+      const isToggle = /^(show|see|read|view) (more|all|full)( text)?$|^expand( message)?$|^more$|^…$/i.test(t);
+      const isDetails = b.tagName === 'SUMMARY' && b.parentElement && !b.parentElement.open;
+      if (!isToggle && !isDetails) continue;
+      opened.add(b);
+      try { b.click(); n++; } catch (e) {}
+      if (n > 40) break;
+    }
+    return n;
   }
 
   // Detect-only mode: quick count for the popup header, no scrolling.
@@ -334,8 +487,8 @@ export async function extractChat(opts) {
     const snap = snapshot(findScroller(site && site.scroller()));
     const real = snap.method === 'site-reader' || snap.method === 'role-attributes' || snap.method === 'layout';
     const t = document.querySelector('[data-testid="conversation-title"], .conversation-title.selected, conversation-actions .conversation-title');
-    let title = (t && t.textContent.trim()) || document.title.replace(/\s*[-|]\s*(ChatGPT|Claude|Gemini|DeepSeek).*$/i, '').trim();
-    if (/^(chatgpt|claude|gemini|deepseek|new chat)$/i.test(title)) title = '';
+    let title = (t && t.textContent.trim()) || document.title.replace(/\s*[-|]\s*(ChatGPT|Claude|Gemini|DeepSeek|Hark|Copilot|Perplexity|Grok|Mistral|Le Chat|Poe|Kimi|Qwen|HuggingChat|Meta AI).*$/i, '').trim();
+    if (/^(chatgpt|claude|gemini|deepseek|hark|copilot|perplexity|grok|le chat|poe|kimi|qwen|huggingchat|meta ai|new chat|chat)$/i.test(title)) title = '';
     return { provider: site ? site.name : host.replace(/^www\./, ''), title, count: real ? snap.messages.length : 0, supported: !!site, method: snap.method, hasSelection: sel.length > 40 };
   }
 
@@ -350,6 +503,7 @@ export async function extractChat(opts) {
   const acc = [], index = {};
   let method = null;
   const take = () => {
+    if (opts.expand !== false) expandCollapsed(sc);
     const s = snapshot(sc);
     if (!method || s.method === 'site-reader') method = s.method;
     if (s.method === 'page-text' || s.method === 'selection') {
@@ -402,8 +556,8 @@ export async function extractChat(opts) {
   let messages = acc.filter((m) => m.text);
   if (method === 'layout' && !messages.some((m) => m.role === 'user')) messages = messages.map((m) => ({ ...m, role: 'transcript' }));
   const t = document.querySelector('[data-testid="conversation-title"], .conversation-title.selected, conversation-actions .conversation-title');
-  let title = (t && t.textContent.trim()) || document.title.replace(/\s*[-|]\s*(ChatGPT|Claude|Gemini|DeepSeek).*$/i, '').trim();
-  if (/^(chatgpt|claude|gemini|deepseek|new chat)$/i.test(title)) title = '';
+  let title = (t && t.textContent.trim()) || document.title.replace(/\s*[-|]\s*(ChatGPT|Claude|Gemini|DeepSeek|Hark|Copilot|Perplexity|Grok|Mistral|Le Chat|Poe|Kimi|Qwen|HuggingChat|Meta AI).*$/i, '').trim();
+  if (/^(chatgpt|claude|gemini|deepseek|hark|copilot|perplexity|grok|le chat|poe|kimi|qwen|huggingchat|meta ai|new chat|chat)$/i.test(title)) title = '';
   return { provider: site ? site.name : host.replace(/^www\./, ''), url: location.href, title, method: method || 'page-text', messages: merge(messages), diag: method === 'site-reader' ? null : diagnostics() };
 }
 
