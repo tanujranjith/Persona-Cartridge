@@ -447,7 +447,7 @@ function renderDetail() {
   }
   if (full) {
     const md = buildMarkdown(full, settings);
-    const pre = el('pre', 'md', md.length > 6000 ? md.slice(0, 6000) + '\n…' : md);
+    const pre = el('pre', 'md', md.length > 400000 ? md.slice(0, 200000) + '\n\n[… preview trimmed, the file has everything …]\n\n' + md.slice(-200000) : md);
     parts.push(sec(`File preview · ${fileNameFor(full)} · ${Math.max(1, Math.round(md.length / 1000))}k chars`, pre));
   }
   body.replaceChildren(...parts);

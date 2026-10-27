@@ -299,6 +299,35 @@ export async function extractChat(opts) {
     }
   }
 
+  // Page text has no stable pieces, so stitch successive captures by their overlapping lines.
+  function stitchText(a, b) {
+    if (!a) return b;
+    if (!b || a.includes(b)) return a;
+    if (b.includes(a)) return b;
+    const la = a.split('\n'), lb = b.split('\n');
+    const norm = (x) => x.trim();
+    const A = la.map(norm), B = lb.map(norm);
+    const first = B.findIndex((x) => x);
+    if (first < 0) return a;
+    // Largest overlap: a suffix of A that equals a prefix of B (blank lines ignored for the anchor).
+    for (let i = 0; i < A.length; i++) {
+      if (A[i] !== B[first]) continue;
+      let ia = i, ib = first, ok = true;
+      while (ia < A.length && ib < B.length) {
+        if (!A[ia]) { ia++; continue; }
+        if (!B[ib]) { ib++; continue; }
+        if (A[ia] !== B[ib]) { ok = false; break; }
+        ia++; ib++;
+      }
+      if (ok && ia >= A.length) {
+        const rest = lb.slice(ib).join('\n');
+        return rest.trim() ? a.replace(/\s+$/, '') + '\n' + rest : a;
+      }
+    }
+    // No overlap found (scrolled past a gap): keep both, in order.
+    return a.replace(/\s+$/, '') + '\n\n' + b;
+  }
+
   // Detect-only mode: quick count for the popup header, no scrolling.
   if (opts.detectOnly) {
     const sel = String(window.getSelection ? window.getSelection() : '').trim();
@@ -324,8 +353,10 @@ export async function extractChat(opts) {
     const s = snapshot(sc);
     if (!method || s.method === 'site-reader') method = s.method;
     if (s.method === 'page-text' || s.method === 'selection') {
-      // Page text has no stable pieces; keep the longest capture.
-      if (!acc.length || s.messages[0] && s.messages[0].text.length > acc[0].text.length) acc.splice(0, acc.length, ...s.messages.map((m) => ({ role: m.role, text: m.text })));
+      const txt = s.messages[0]?.text || '';
+      if (!txt) return;
+      if (!acc.length) acc.push({ role: s.messages[0].role, text: txt });
+      else acc[0].text = stitchText(acc[0].text, txt);
       return;
     }
     mergeInto(acc, index, s.messages);
@@ -347,12 +378,21 @@ export async function extractChat(opts) {
     for (let i = 0; i < 600; i++) {
       const before = sc.scrollTop;
       sc.scrollTop = before + step;
-      await sleep(220);
+      await sleep(260);
       take();
       if (sc.scrollTop <= before + 2) break;
       if (opts.onProgressKey) try { window[opts.onProgressKey] = acc.length; } catch (e) {}
     }
-    await sleep(250);
+    // 3. Settle at the very bottom: the last turns often mount (or grow) a moment late.
+    let lastBottom = -1, calm = 0;
+    for (let i = 0; i < 12 && calm < 2; i++) {
+      sc.scrollTop = sc.scrollHeight;
+      await sleep(400);
+      take();
+      if (sc.scrollHeight === lastBottom) calm++; else calm = 0;
+      lastBottom = sc.scrollHeight;
+    }
+    if (site) for (let i = 0; i < 20 && site.busy(); i++) await sleep(500);
     take();
     sc.scrollTop = start || sc.scrollHeight;
   } else {

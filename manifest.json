@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Persona Cartridges",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Save any AI chat, even a temporary one, as a portable persona cartridge and load it into ChatGPT, Claude, Gemini, DeepSeek or anywhere.",
   "permissions": ["activeTab", "scripting", "storage", "unlimitedStorage", "clipboardWrite"],
   "host_permissions": [
