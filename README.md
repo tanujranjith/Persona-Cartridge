@@ -37,7 +37,17 @@ All selectors live in `SITES` at the top of `page-scripts.js`. If a site changes
 - `options.html/.js` (settings)
 
 ## Privacy
-Cartridges and your key live only in `chrome.storage.local` on this device. The transcript is sent only to the AI provider you chose.
+Cartridges, settings and the API key are stored in `chrome.storage.local` in this browser profile. The API key is not encrypted by a cartridge PIN.
+
+- **Save / Re-distill with a key:** transcript text (bounded by the configured character limit), source provider and chat title are sent to the selected AI provider or custom endpoint. Its own privacy and retention terms apply. Saving with a key starts distillation automatically.
+- **Save without a key:** a raw transcript is saved locally; no distillation request is made.
+- **Test key:** sends a small test prompt and your key to the configured provider/endpoint, not a saved chat transcript.
+- **Load / Copy / Export:** cartridge content may be placed in a destination chat or attachment, copied to the clipboard, or written to a downloaded file. Those copies are outside extension storage; a destination site may process text or attachments before you press Send.
+- **PIN locks:** encrypt the locked cartridge, not your API key or copies previously exported, copied or sent to a provider. A forgotten PIN cannot be recovered.
+
+Do not commit personal cartridge exports, transcripts, provider keys or browser profiles. The repository ignore rules are a precaution, not a secret scanner; review staged files before committing.
+
+Run the offline privacy-contract checks with `node --test tests/privacy-contract.test.cjs`.
 
 ## What's new in 1.1
 - **Load attaches a .md file** to the chat (ChatGPT, Claude, Gemini, DeepSeek, most others) and types a one-line note. If a site blocks it, the .md downloads so you can drag it in. Switch to text paste in Settings.
