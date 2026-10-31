@@ -1,0 +1,19 @@
+# Local secrets and environment configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# User-generated cartridge exports (normal app filenames)
+*-cartridge.json
+*-cartridge.md
+# Explicit local-data directories; do not ignore all JSON/source files
+/local-data/
+/exports/
+/transcripts/
+/browser-profile/
+# Local tooling and generated logs
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
